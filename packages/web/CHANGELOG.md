@@ -1,5 +1,11 @@
 # @e2e-dev/web
 
+## 0.14.1
+
+### Patch Changes
+
+- [#1097](https://github.com/tester-army/e2e/pull/1097) [`a869c06`](https://github.com/tester-army/e2e/commit/a869c06304941a8e883dde267f9ca10ead856088) Thanks [@okwasniewski](https://github.com/okwasniewski)! - `expect(browser).toHaveClass` on a node that never arrives still fails as `ASSERTION_FAILED` observing `no node`, now that a locator read waits for its match until the action timeout.
+
 ## 0.14.0
 
 ### Minor Changes

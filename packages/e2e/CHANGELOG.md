@@ -1,5 +1,33 @@
 # e2e
 
+## 0.21.0
+
+### Minor Changes
+
+- [#1097](https://github.com/tester-army/e2e/pull/1097) [`a869c06`](https://github.com/tester-army/e2e/commit/a869c06304941a8e883dde267f9ca10ead856088) Thanks [@okwasniewski](https://github.com/okwasniewski)! - `textContent()`, `inputValue()`, `getAttribute()`, `isEnabled()`, `isDisabled()`, `isChecked()`, and `boundingBox()` now wait for their one match until the action timeout, as actions and Playwright's reads do, instead of failing at once with `LOCATOR_NOT_FOUND` when the node is still rendering. `isVisible()`, `isHidden()`, `count()`, `all()`, and `allTextContents()` still answer from the current screen. A read of a node that never appears fails after the action timeout.
+
+- [#980](https://github.com/tester-army/e2e/pull/980) [`3a53fbd`](https://github.com/tester-army/e2e/commit/3a53fbd8e5fb8ed345dd00331b3a5b5b90bac1d3) Thanks [@bheemreddy181](https://github.com/bheemreddy181)! - Add `openHost<Fixtures>()` to `e2e/runner` for other test runners. A worker-lifetime host prepares the target, starts app processes, and initializes its engine once. `host.openSession({ name, timeout, signal, agent, onStep })` opens a fresh test-lifetime attempt with typed fixtures, its own deadline, steps, and artifacts. Only one hosted attempt can be opening, live, or closing per process; a host can open sessions sequentially.
+  
+  A session's `timeout` is enforced: when it passes, every operation still running fails with `TEST_TIMEOUT`, the session is timed out, and `close()` reports it. A launch that fails or is cancelled leaves the host usable for the next session; only a session whose engine cleanup failed closes the host.
+  
+  Closing a session writes a redacted `trace.md` under a safe, unique `results/host/` directory, available through the absolute `tracePath` for attachments. `close()` returns soft expectation and cleanup failures; async disposal throws an `AggregateError` when failures exist. Closing the host cancels any pending or active session, then disposes and releases its worker resources once. Both close methods are idempotent. `config` accepts a path or an `E2EConfig` value. The one-shot MCP attempt stays internal.
+
+### Patch Changes
+
+- [#1058](https://github.com/tester-army/e2e/pull/1058) [`a91b6fb`](https://github.com/tester-army/e2e/commit/a91b6fbcbcd901372a3b0175cd30456ed5a5eed7) Thanks [@HEOJUNFO](https://github.com/HEOJUNFO)! - An `end-mismatch` cache detail now says which part of the end check failed: recorded nodes that did not show (`missing alert "Acme Notes"`), nodes that should have gone but are still there (`still showing ...`), alerts the recording never saw (`unrecorded alert ...`), or an outcome that already showed before the replay acted. It used to print the first two recorded nodes, whether or not they were on screen.
+
+- [#1093](https://github.com/tester-army/e2e/pull/1093) [`0feaefb`](https://github.com/tester-army/e2e/commit/0feaefb4d3d9edc34ac94818073f305b963a975c) Thanks [@okwasniewski](https://github.com/okwasniewski)! - The list reporter badges an `e2e explore --target <name>` run with the explored target rather than the first configured one.
+
+- [#1092](https://github.com/tester-army/e2e/pull/1092) [`6b1e524`](https://github.com/tester-army/e2e/commit/6b1e5240f7409c7d0085f4c76e9db3d7422b2f02) Thanks [@okwasniewski](https://github.com/okwasniewski)! - A judgment (`agent.assert`, `agent.waitFor`, `agent.extract`) on a screen denser than the observation budget now cuts the screen by its instruction's measured size, so a long instruction, or `e2e explore`'s planner once its record of earlier steps has grown, no longer fails the adapter's pre-flight with `STEP_BUDGET_EXHAUSTED: model input upper bound N exceeds the agent's maxInputTokens M` and aborts the run before any request is sent.
+
+- [#1098](https://github.com/tester-army/e2e/pull/1098) [`a5bb4db`](https://github.com/tester-army/e2e/commit/a5bb4dba989ebca996b64b6c26044a306fdfd7e5) Thanks [@TMisiukiewicz](https://github.com/TMisiukiewicz)! - `e2e login` prints the sign-in URL on a line of its own instead of inside a box, so copying it no longer picks up the box's borders.
+
+- [#1018](https://github.com/tester-army/e2e/pull/1018) [`dec61af`](https://github.com/tester-army/e2e/commit/dec61af451045884b106dd6f5a0c362c762c4e9f) Thanks [@fecolinhares](https://github.com/fecolinhares)! - `opencodeConsole()` asks for an explicit output cap on the models the workspace config serves over Anthropic. Those ids are unknown to the Anthropic SDK, which limits a call that sets no `maxOutputTokens` to 4096 tokens and only warns: a long answer ended with `finishReason: 'length'` and nothing in the result said why. The provider now asks for 8192, the cap the runner already allows a judgment, and a caller's own `maxOutputTokens` is left untouched.
+
+- [#1073](https://github.com/tester-army/e2e/pull/1073) [`14b77d3`](https://github.com/tester-army/e2e/commit/14b77d320e73921e84234bfad05c92ebc4693b73) Thanks [@thymikee](https://github.com/thymikee)! - The mobile engine now bounds each input (a tap or other node action, a point action, typing, a key, `back`, a keyboard dismissal) by its budget (`actionTimeout`, or the call's `timeout`). An input that outlived it used to hold the step until the test timeout. Now an input sent that does not answer in time fails with `ACTION_MAY_HAVE_COMMITTED`, which the runner never repeats, as on the web engine; one sent with almost no budget left still gets 250 ms to answer. An input the budget ran out before, while its target was still settling, is not sent and fails with `OPERATION_TIMEOUT`. A long press or timed swipe that holds at least as long as the budget left is refused before it is sent, naming the hold and the time left. Reads (observe, locate, the relocation before a tap), launches, artifacts, and `device.*` fixture calls are unchanged: a locator poll still lets its last read finish. The `OperationContext.signal` docs in `e2e/engine` now say what it does: it aborts with the attempt or the running hook, not at `timeoutMs`.
+
+- [#1096](https://github.com/tester-army/e2e/pull/1096) [`37fee75`](https://github.com/tester-army/e2e/commit/37fee7501be8bb3b3b26de69fa1c4412bd76fdd9) Thanks [@okwasniewski](https://github.com/okwasniewski)! - The run telemetry event now counts agent steps by entry point (`steps_agent_act`, `steps_agent_assert`, `steps_agent_extract`, `steps_agent_waitfor`) and how many executed tests ran any agent step and how many of those ran `agent.act` (`tests_with_agent_steps`, `tests_with_act`), so the share of tests that are deterministic end to end can be read off a run.
+
 ## 0.20.0
 
 ### Minor Changes
