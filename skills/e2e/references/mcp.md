@@ -92,10 +92,10 @@ Resources: `e2e://guide` and `e2e://guide/<topic>` hold this skill.
    One match: use the printed `screen.getByRole(...)` call. Zero or several:
    adjust before writing the test; the same failure would hit the test as
    `LOCATOR_NOT_FOUND` or `LOCATOR_AMBIGUOUS`. A role query's `name` matches
-   the accessible name only, while `observe` can show a node's text in its
-   place (a status or alert message, a list item): `status "Saved."` on an
-   unlabelled status is its text, so match it with
-   `getByRole('status').filter({ hasText: 'Saved.' })` or `getByText`.
+   the accessible name only, while `observe` shows a `status`, `alert`, or
+   `listitem` by its text: `status "Saved."` on an unlabelled status is its
+   text, so match it with `getByRole('status').filter({ hasText: 'Saved.' })`
+   or `getByText`.
 3. Write `tests/<feature>.e2e.ts` (topic `writing-tests`). Deterministic steps
    where you saw exact names; `agent.act` where the flow varies.
 4. Run it from the shell: `npx e2e run tests/<feature>.e2e.ts`, read the

@@ -157,7 +157,7 @@ export function locateQuery(args: LocateArgs): LocateQuery {
     return {
       expression: roleQuery(role as Role, name === undefined ? undefined : { name, exact }, undefined),
       code: `screen.getByRole(${JSON.stringify(role)}${options})`,
-      notFound: name === undefined ? notFound : roleNameNotFound(role, name, exact),
+      notFound: name !== undefined && CONTENT_NAMED_ROLES.has(role) ? contentNameNotFound(role, name, exact) : notFound,
     };
   }
   if (name !== undefined) throw new ConfigurationError('INVALID_ARGUMENT', 'name only narrows a role query');
@@ -169,13 +169,16 @@ export function locateQuery(args: LocateArgs): LocateQuery {
 }
 
 /**
- * A role query's name is the accessible name, while `observe` can name a node
- * from its text (a status or alert message, a list item), so a name read off
- * the observation may be text no role query matches.
+ * Roles `observe` names from their text even though the platform gives them no
+ * accessible name, so a message or list row reads as one line. A name read off
+ * such a node is text no role query matches.
  */
-function roleNameNotFound(role: string, name: string, exact: boolean): string {
+const CONTENT_NAMED_ROLES: ReadonlySet<string> = new Set(['status', 'alert', 'listitem']);
+
+/** The zero-match advice for a content-named role: match the text instead of retrying it as a name. */
+function contentNameNotFound(role: string, name: string, exact: boolean): string {
   const quoted = JSON.stringify(name);
-  return `A role query matches the accessible name only, and observe can show a node's text in its place (a status or alert message, a list item). If ${quoted} is that text, use screen.getByRole(${JSON.stringify(role)}).filter({ hasText: ${quoted} }) or screen.getByText(${quoted}).${exact ? ' Otherwise loosen the match with exact: false.' : ''}`;
+  return `A role query matches the accessible name only, and observe shows a ${role} by its text in its place. If ${quoted} is that text, use screen.getByRole(${JSON.stringify(role)}).filter({ hasText: ${quoted} }) or screen.getByText(${quoted}).${exact ? ' Otherwise loosen the match with exact: false.' : ''}`;
 }
 
 /** Renders a locate result: the count, the verdict a test would get, and the nodes, each through the attempt's redactor. */

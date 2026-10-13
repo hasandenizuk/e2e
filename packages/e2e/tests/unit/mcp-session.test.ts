@@ -54,6 +54,9 @@ describe('describeLocate', () => {
     const loose = describeLocate(locateQuery({ role: 'status', name: 'Saved.', exact: false }), 0, [], none);
     expect(loose).toContain('screen.getByRole("status").filter({ hasText: "Saved." })');
     expect(loose).not.toContain('exact: false');
+    const button = describeLocate(locateQuery({ role: 'button', name: 'Submitt' }), 0, [], none);
+    expect(button).toContain('Check the accessible name in the observation');
+    expect(button).not.toContain('hasText');
   });
 
   it('on no match, offers exact: false only when the query is still exact', () => {
